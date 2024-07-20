@@ -1,0 +1,23 @@
+{
+    "name": "virli/rumput",
+    "description": "Lightweight PHP Framework",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Vaizal Permana",
+            "email": "vaizal.p@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Rumput\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^7.0 || ^8.0",
+        "symfony/http-foundation": "6.0.x-dev",
+        "catfan/medoo": "dev-master"
+    }
+}
