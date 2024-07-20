@@ -1,2 +1,2 @@
-# rumput
+# Rumput
 Lightweight PHP Framework
