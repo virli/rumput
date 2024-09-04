@@ -106,9 +106,9 @@ class Rumput
 
     protected function __construct()
     {
-        self::$configsPath = self::$rootPath . '/inc/configs';
-        self::$storagePath = self::$rootPath . '/inc/storage';
-        self::$viewsPath   = self::$rootPath . '/inc/views';
+        self::$configsPath = self::$rootPath . '/configs';
+        self::$storagePath = self::$rootPath . '/storage';
+        self::$viewsPath   = self::$rootPath . '/views';
         self::$publicPath  = self::$rootPath . '/public';
     }
 
