@@ -14,7 +14,7 @@ class Router
 
     private array $map;
     private array $route;
-    private string $notfoundAction;
+    private array $notfoundAction;
 
     public function __construct(array $configs)
     {
@@ -22,7 +22,7 @@ class Router
             self::$cachePath = Rumput::$storagePath . '/cache/router.cache.php';
         }
 
-        $this->notfoundAction = Controller::class . ':notfoundAction';
+        $this->notfoundAction = [Controller::class . ':notfoundAction'];
 
         if (Rumput::$debug || !file_exists(self::$cachePath)) {
             $this->parseConfigs($configs);
@@ -33,7 +33,7 @@ class Router
 
     private function parseConfig0(
         array $configs,
-        array $parent = null
+        ?array $parent = null
     ): array {
         $result = [];
         foreach ($configs as $key => $item) {
@@ -64,7 +64,7 @@ class Router
                 'method'     => $item['method'] ?? Request::METHOD_GET,
                 'type'       => $item['type'] ?? Router::TYPE_SINGLE,
                 'middleware' => $middleware,
-                'controller' => $item['controller'] ?? '',
+                'controller' => $item['controller'] ?? [],
             ];
 
             if (!empty($tempResult['controller'])) {
@@ -89,17 +89,14 @@ class Router
     {
         $routeParse0 = $this->parseConfig0($configs);
 
-        $routeMap = [];
+        $routeMap    = [];
         $routeParse1 = [
             'GET' => [
                 'single' => [],
                 'matchall' => []
             ],
-            'POST' => [
-                'single' => [],
-                'matchall' => []
-            ],
         ];
+
         foreach ($routeParse0 as $key => $item) {
             $routeMap[$key] = $item['path'];
 
@@ -109,6 +106,13 @@ class Router
             }
 
             foreach ($method as $methodItem) {
+                if (array_key_exists($methodItem, $routeParse1) === false) {
+                    $routeParse1[$methodItem] = [
+                        'single' => [],
+                        'matchall' => []
+                    ];
+                }
+
                 $routeParse1[$methodItem][$item['type']][$key] = [
                     'path' => $item['path'],
                     'controller' => $item['controller']
@@ -125,7 +129,7 @@ class Router
         file_put_contents(self::$cachePath, '<?php return ' . var_export($dumper, true) . ';');
     }
 
-    protected function normalizeRoute(array $item): string
+    protected function normalizeRoute(array $item): array
     {
         $controller = [];
         foreach ($item['middleware'] as $i) {
@@ -136,7 +140,7 @@ class Router
         $rawController = explode(':', $item['controller']);
         $controller[] = 'App\\Controller\\' . $rawController[0] . 'Controller:' . $rawController[1] . 'Action';
 
-        return implode('|', $controller);
+        return $controller;
     }
 
     protected function loadRoute(): void
@@ -148,46 +152,36 @@ class Router
         $this->notfoundAction = $dump['notfound'];
     }
 
-    public function dispatch(Request $request)
+    public function dispatch(Request $request): array
     {
-        $path = $request->getPathInfo();
-        if (false === in_array($request->getMethod(), [Request::METHOD_GET, Request::METHOD_POST])) {
+        if (false === array_key_exists($request->getMethod(), $this->route)) {
             return $this->notfoundAction;
         }
 
+        $path  = $request->getPathInfo();
         $route = $this->route[$request->getMethod()];
 
-        $controller = null;
         foreach ($route['single'] as $item) {
             if ($path === $item['path']) {
-                $controller = $item['controller'];
-                break;
+                return $item['controller'];
             }
         }
 
-        if (null === $controller) {
-            foreach ($route['matchall'] as $item) {
-                if ('/' === $item['path']) {
-                    $controller = $item['controller'];
-                    break;
-                }
+        foreach ($route['matchall'] as $item) {
+            if ('/' === $item['path']) {
+                return $item['controller'];
+            }
 
-                if (0 === strpos($path, $item['path'])) {
-                    $trailing = substr($path, strlen($item['path']), 1);
+            if (0 === strpos($path, $item['path'])) {
+                $trailing = substr($path, strlen($item['path']), 1);
 
-                    if ('' === $trailing || '/' === $trailing) {
-                        $controller = $item['controller'];
-                        break;
-                    }
+                if ('' === $trailing || '/' === $trailing) {
+                    return $item['controller'];
                 }
             }
         }
 
-        if (null === $controller) {
-            $controller = $this->notfoundAction;
-        }
-
-        return $controller;
+        return $this->notfoundAction;
     }
 
     public function getPath(string $name): string

@@ -63,9 +63,8 @@ class Rumput
         $response = null;
         try {
             $handler = $self->router->dispatch($request);
-            $listController = explode('|', $handler);
 
-            foreach ($listController as $controller) {
+            foreach ($handler as $controller) {
                 $controllerName   = explode(':', $controller);
                 $controllerClass  = $controllerName[0];
                 $controllerAction = $controllerName[1];
