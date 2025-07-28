@@ -10,6 +10,7 @@ class Rumput
 {
     public static bool $debug = false;
 
+    public static string $baseURL;
     public static string $rootPath;
     public static string $configsPath;
     public static string $storagePath;
