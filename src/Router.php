@@ -24,11 +24,7 @@ class Router
 
         $this->notfoundAction = [Controller::class . ':notfoundAction'];
 
-        if (Rumput::$debug || !file_exists(self::$cachePath)) {
-            $this->parseConfigs($configs);
-        }
-
-        $this->loadRoute();
+        $this->parseConfigs($configs);
     }
 
     private function parseConfig0(
@@ -87,6 +83,20 @@ class Router
 
     public function parseConfigs(array $configs)
     {
+        if (Rumput::$debug === false && file_exists(self::$cachePath)) {
+            $dump = require self::$cachePath;
+            if (!is_array($dump)) {
+                unlink(self::$cachePath);
+
+                throw new Exception('Invalid route cache file');
+            }
+
+            $this->route = $dump['route'];
+            $this->map = $dump['map'];
+            $this->notfoundAction = $dump['notfound'];
+            return;
+        }
+
         $routeParse0 = $this->parseConfig0($configs);
 
         $routeMap    = [];
@@ -120,9 +130,13 @@ class Router
             }
         }
 
+        $this->route = $routeParse1;
+        $this->map = $routeMap;
+        $this->notfoundAction = $this->notfoundAction;
+
         $dumper = [
-            'route'    => $routeParse1,
-            'map'      => $routeMap,
+            'route'    => $this->route,
+            'map'      => $this->map,
             'notfound' => $this->notfoundAction
         ];
 
@@ -141,18 +155,6 @@ class Router
         $controller[] = 'App\\Controller\\' . $rawController[0] . 'Controller:' . $rawController[1] . 'Action';
 
         return $controller;
-    }
-
-    protected function loadRoute(): void
-    {
-        $dump = require self::$cachePath;
-        if (!is_array($dump)) {
-            throw new Exception('Invalid route cache file');
-        }
-
-        $this->map = $dump['map'];
-        $this->route = $dump['route'];
-        $this->notfoundAction = $dump['notfound'];
     }
 
     public function dispatch(Request $request): array
