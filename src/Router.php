@@ -145,15 +145,14 @@ class Router
 
     protected function loadRoute(): void
     {
-        try {
-            $dump = require self::$cachePath;
-
-            $this->map = $dump['map'];
-            $this->route = $dump['route'];
-            $this->notfoundAction = $dump['notfound'];
-        } catch (Exception $e) {
-            throw new Exception('Failed to load route cache: ' . $e->getMessage());
+        $dump = require self::$cachePath;
+        if (!is_array($dump)) {
+            throw new Exception('Invalid route cache file');
         }
+
+        $this->map = $dump['map'];
+        $this->route = $dump['route'];
+        $this->notfoundAction = $dump['notfound'];
     }
 
     public function dispatch(Request $request): array
