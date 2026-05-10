@@ -16,6 +16,7 @@ class Rumput
     public static string $storagePath;
     public static string $publicPath;
     public static string $viewsPath;
+    public static string $sessionHandler = 'file';
 
     /**
      * Request from client
@@ -55,11 +56,12 @@ class Rumput
     public static function run(Request $request)
     {
         $self = new self();
-        $self->web($request);
         $self->loadConfigs();
 
         $self->router   = new Router($self->configs['route']);
         $self->database = new DB($self->configs['database']);
+
+        $self->web($request);
 
         $response = null;
         try {

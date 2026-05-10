@@ -5,6 +5,7 @@ namespace Rumput;
 use Exception;
 use Symfony\Component\HttpFoundation\Session\Session as SymfonySession;
 use Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeFileSessionHandler;
+use Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler;
 use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 
 class Session
@@ -15,8 +16,16 @@ class Session
 
     public static function start(): Session
     {
-        $sessionPath = Rumput::$storagePath . '/sessions';
-        $handler = new NativeFileSessionHandler($sessionPath);
+        $handler = null;
+        if (Rumput::$sessionHandler === 'file') {
+            $sessionPath = Rumput::$storagePath . '/sessions';
+            $handler = new NativeFileSessionHandler($sessionPath);
+        }
+
+        if (Rumput::$sessionHandler === 'database') {
+            $handler = new PdoSessionHandler(DB::i()->pdo);
+        }
+
         $storage = new NativeSessionStorage([
             'name' => 'appsession',
         ], $handler);
