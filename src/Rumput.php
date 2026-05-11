@@ -19,6 +19,13 @@ class Rumput
     public static string $sessionHandler = 'file';
 
     /**
+     * Store configs data
+     *
+     * @var array
+     */
+    public static array $configs;
+
+    /**
      * Request from client
      *
      * @var Request
@@ -46,20 +53,13 @@ class Rumput
      */
     protected DB $database;
 
-    /**
-     * Store configs data
-     *
-     * @var array
-     */
-    protected array $configs;
-
     public static function run(Request $request)
     {
         $self = new self();
         $self->loadConfigs();
 
-        $self->router   = new Router($self->configs['route']);
-        $self->database = new DB($self->configs['database']);
+        $self->router   = new Router(self::$configs['route']);
+        $self->database = new DB(self::$configs['database']);
 
         $self->web($request);
 
@@ -103,7 +103,7 @@ class Rumput
         $self = new self();
         $self->loadConfigs();
 
-        $self->database = new DB($self->configs['database']);
+        $self->database = new DB(self::$configs['database']);
     }
 
     protected function __construct()
@@ -146,7 +146,7 @@ class Rumput
             $configs[$name] = require self::$configsPath . '/' . $file;
         }
 
-        $this->configs = $configs;
+        self::$configs = $configs;
     }
 
     protected function callController(Controller $controller, $method): Response

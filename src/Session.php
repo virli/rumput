@@ -23,7 +23,17 @@ class Session
         }
 
         if (Rumput::$sessionHandler === 'database') {
-            $handler = new PdoSessionHandler(DB::i()->pdo);
+            $handler = new PdoSessionHandler(
+                sprintf(
+                    'mysql:dbname=%s; host=%s; port=3306',
+                    Rumput::$configs['database']['database'],
+                    Rumput::$configs['database']['host'],
+                ),
+                [
+                    'db_username' => Rumput::$configs['database']['username'],
+                    'db_password' => Rumput::$configs['database']['password']
+                ]
+            );
         }
 
         $storage = new NativeSessionStorage([
